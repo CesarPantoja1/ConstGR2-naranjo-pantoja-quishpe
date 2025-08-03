@@ -26,7 +26,7 @@ def get_available_categories():
         # Consultar categorías distintas de productos disponibles
         categories = (
             db.session.query(distinct(Product.category))
-            .filter(Product.available == True)
+            .filter(Product.available is True)  # Cambiado == True por is True
             .order_by(Product.category)
             .all()
         )
@@ -64,7 +64,7 @@ def search_products_by_name(query):
             return get_all_products()
         products = (
             Product.query.filter(
-                Product.name.like(f"%{query}%"), Product.available == True
+                Product.name.like(f"%{query}%"), Product.available is True  # Cambiado == True por is True
             )
             .order_by(Product.name)
             .all()
