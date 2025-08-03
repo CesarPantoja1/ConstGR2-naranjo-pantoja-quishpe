@@ -152,6 +152,7 @@ def api_categories():
         )
 
 
+
 @menu_bp.route("/api/products")
 def api_products():
     """API endpoint para obtener todos los productos"""
