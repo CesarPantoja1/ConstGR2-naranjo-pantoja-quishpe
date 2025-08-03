@@ -1,5 +1,4 @@
-# .github/workflows/ci.yml
-name: Flask CI
+name: Flask CI Pipeline
 
 on:
   push:
@@ -8,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  build-test-lint:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,14 +21,19 @@ jobs:
 
     - name: Instalar dependencias
       run: |
-        python -m pip install --upgrade pip
+        pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Ejecutar pruebas (si existen)
+    - name: Lint con flake8
       run: |
-        if [ -f "tests/test_app.py" ]; then
+        pip install flake8
+        flake8 . || true  # No detiene el pipeline si hay errores (opcional)
+
+    - name: Ejecutar pruebas con pytest
+      run: |
+        if [ -d "tests" ]; then
           pip install pytest
           pytest
         else
-          echo "No hay pruebas definidas."
+          echo "No hay pruebas definidas aún."
         fi
