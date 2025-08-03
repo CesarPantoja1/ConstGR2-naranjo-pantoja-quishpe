@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gablou - Menu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cart.css') }}">
+    <!-- NUEVO: CSS del modal de productos -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/product-modal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Mobile Header (visible on mobile only) -->
+    <header class="mobile-header">
+        <div class="mobile-logo">
+            <div class="logo-icon">
+                <i class="fas fa-store"></i>
+            </div>
+            <span class="logo-text">Gablou</span>
+        </div>
+        <button class="hamburger-menu" id="hamburger-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <!-- Overlay for mobile menu -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <!-- Desktop Logo -->
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-store"></i>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('menu.menu_list') }}" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span class="nav-text">Inicio</span>
+            </a>
+        </nav>
+
+        <!-- Logout -->
+        <div class="logout">
+            <a href="{{ url_for('home.index') }}" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="nav-text">Salir</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>Alimentos Gablou</h1>
+                <p class="date" id="current-date">Loading...</p>
+            </div>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search for food, coffee, etc..." id="search-input">
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab active" data-category="all">Todos</button>
+            {% if categories %}
+            {% for category in categories %}
+            <button class="tab" data-category="{{ category }}">{{ category }}</button>
+            {% endfor %}
+            {% else %}
+            <!-- Fallback categories if none from database -->
+            <button class="tab" data-category="Bandejas">Bandejas</button>
+            <button class="tab" data-category="Platos Principales">Platos Principales</button>
+            <button class="tab" data-category="Postres">Postres</button>
+            {% endif %}
+        </nav>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <h2>Selecciona tus platos</h2>
+            <select class="filter-dropdown">
+                <option>Para comer aquí</option>
+                <option>Para llevar</option>
+                <option>Delivery</option>
+            </select>
+        </div>
+
+        <!-- Dishes Grid -->
+        <div class="dishes-grid" id="dishes-container">
+            {% if products %}
+            {% for product in products %}
+            <div class="dish-card" data-category="{{ product.category }}" data-name="{{ product.name|lower }}">
+                {% if product.image.startswith('http') %}
+                <img src="{{ product.image }}" alt="{{ product.name }}"
+                     onerror="this.src='https://via.placeholder.com/300x300/f0f0f0/999?text=No+Image'">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/' + product.image) }}" alt="{{ product.name }}"
+                     onerror="this.src='https://via.placeholder.com/300x300/f0f0f0/999?text=No+Image'">
+                {% endif %}
+                <h3>{{ product.name }}</h3>
+                <p class="description">{{ product.description or '' }}</p>
+                <p class="price">${{ "%.2f"|format(product.price) }}</p>
+                <p class="availability">{{ product.stock }} disponibles</p>
+                {% if not product.available %}
+                <div class="out-of-stock">Agotado</div>
+                {% endif %}
+                <!-- NOTA: El botón "Ver más" se agregará automáticamente por JavaScript -->
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="no-products">
+                <i class="fas fa-utensils"></i>
+                <h3>No hay productos disponibles</h3>
+                <p>Por favor, vuelve más tarde o contáctanos para más información.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Loading indicator -->
+        <div class="loading-indicator" id="loading" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando productos...</p>
+        </div>
+
+        <!-- Botón flotante adicional para WhatsApp (opcional) -->
+        <button class="whatsapp-float-btn" onclick="cartManager && cartManager.cart.length > 0 ? cartManager.sendToWhatsApp() : cartManager.showNotification('Agrega productos al carrito primero', 'info')" title="Enviar pedido por WhatsApp">
+            <i class="fab fa-whatsapp"></i>
+        </button>
+    </main>
+
+    <!-- Scripts existentes -->
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cart.js') }}"></script>
+    <!-- NUEVO: JavaScript del modal de productos -->
+    <script src="{{ url_for('static', filename='js/product-modal.js') }}"></script>
+    
+    <!-- Script adicional para integración -->
+    <script>
+        // Integración del carrito con la funcionalidad existente
+        document.addEventListener('DOMContentLoaded', function() {
+            // Esperar a que ambos sistemas estén listos
+            setTimeout(function() {
+                console.log('🛒 Sistema de carrito de Gablou iniciado');
+                console.log('👁️ Sistema de modal de productos iniciado');
+                
+                // Verificar si hay items guardados y mostrar notificación
+                if (cartManager && cartManager.cart.length > 0) {
+                    cartManager.showNotification(`Tienes ${cartManager.cart.length} productos en tu carrito`, 'info');
+                }
+
+                // Inicializar botones "Ver más" para productos existentes
+                if (productModal) {
+                    productModal.refreshViewMoreButtons();
+                }
+            }, 500);
+        });
+        
+        // Función para agregar estilo al botón flotante de WhatsApp
+        const style = document.createElement('style');
+        style.textContent = `
+            .whatsapp-float-btn {
+                position: fixed;
+                bottom: 90px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                background: #25D366;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                font-size: 24px;
+                cursor: pointer;
+                box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
+                transition: all 0.3s ease;
+                z-index: 999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .whatsapp-float-btn:hover {
+                background: #22c55e;
+                transform: translateY(-2px) scale(1.05);
+                box-shadow: 0 6px 25px rgba(37, 211, 102, 0.4);
+            }
+            
+            @media (max-width: 768px) {
+                .whatsapp-float-btn {
+                    bottom: 85px;
+                    right: 15px;
+                    width: 50px;
+                    height: 50px;
+                    font-size: 20px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>
