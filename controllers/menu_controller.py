@@ -64,7 +64,8 @@ def search_products_by_name(query):
             return get_all_products()
         products = (
             Product.query.filter(
-                Product.name.like(f"%{query}%"), Product.available is True  # Cambiado == True por is True
+                Product.name.like(f"%{query}%"),
+                Product.available is True,  # Cambiado == True por is True
             )
             .order_by(Product.name)
             .all()
@@ -134,7 +135,7 @@ def search_products():
     """API endpoint para búsqueda de productos"""
     query = request.args.get("q", "")
     products = search_products_by_name(query)
-    return jsonify({"products": products, "total": len(products), "query": query}        )
+    return jsonify({"products": products, "total": len(products), "query": query})
 
 
 @menu_bp.route("/api/categories")
@@ -150,8 +151,6 @@ def api_categories():
             jsonify({"success": False, "error": str(e), "categories": [], "total": 0}),
             500,
         )
-
-
 
 
 @menu_bp.route("/api/products")

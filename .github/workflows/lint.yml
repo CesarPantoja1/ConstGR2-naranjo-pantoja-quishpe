@@ -1,4 +1,4 @@
-name: Code Quality with Black
+name: Lint Flask App
 
 on:
   push:
